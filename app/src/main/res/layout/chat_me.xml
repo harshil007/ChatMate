@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="7dp">
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="125dp"
+        app:cardElevation="4dp"
+        android:background="@color/colorChatMe"
+        >
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorChatMe"
+            android:padding="7dp"
+
+            >
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:id="@+id/iv_chat_me"
+                android:visibility="gone"
+                android:layout_alignParentRight="true"
+                />
+
+            <TextView
+                android:layout_below="@+id/iv_chat_me"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_chat"
+                android:text="YO"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#000"
+                android:layout_alignParentRight="true"
+
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_time_me"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/tv_chat"
+                android:textSize="13sp"
+                android:text=""
+                />
+
+
+        </RelativeLayout>
+
+
+
+    </android.support.v7.widget.CardView>
+
+
+</LinearLayout>
+

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:id="@+id/ll_list"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="7dp"
+    android:layout_marginBottom="7dp"
+    >
+
+
+
+    <startup.com.whatsapp.CircularImageView
+        android:id="@+id/listimageview"
+        android:layout_width="61dp"
+        android:layout_height="61dp"
+        android:src="@drawable/ic_account"
+        />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_marginLeft="7dp"
+            android:layout_marginTop="6.5dp"
+            android:text="Medium Text"
+            android:textSize="21.5sp"
+            android:textStyle="bold"
+            android:textColor="#000"
+            android:id="@+id/tv_name" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_name"
+            android:layout_marginTop="3dp"
+            android:layout_marginLeft="7dp"
+            android:text=""
+            android:textSize="17sp"
+            android:id="@+id/tv_last_chat"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_time"
+            android:text=""
+            android:textSize="15sp"
+            android:layout_marginTop="6.5dp"
+            android:layout_alignParentRight="true"
+            />
+
+    </RelativeLayout>
+
+
+
+</LinearLayout>

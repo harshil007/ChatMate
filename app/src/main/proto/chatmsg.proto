@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+
+message startup.com.chatmate.startup.com.chatmate.chatmsg {
+
+    required string msgtext = 1;
+    required string username = 2;
+    optional string timestamp = 3;
+
+}
