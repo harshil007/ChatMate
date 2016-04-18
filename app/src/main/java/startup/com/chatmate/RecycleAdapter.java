@@ -30,14 +30,16 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
     //private StringFilter filter;
     private ArrayList<String> name_array;
     Context context;
-    private final List<ExampleModel> mModels;
+    private final List<UserModel> mModels;
     ClickListener clickListener;
     onLongListener onLongClick;
+    int tab;
 
 
-    public RecycleAdapter(FragmentActivity context, List<ExampleModel> models) {
+    public RecycleAdapter(FragmentActivity context, List<UserModel> models,int tab) {
         inflater = LayoutInflater.from(context);
         mModels = new ArrayList<>(models);
+        this.tab=tab;
         /*name_array = name;
         this.allNames = new ArrayList<String>();
         allNames.addAll(name);
@@ -56,7 +58,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        final ExampleModel model = mModels.get(position);
+        final UserModel model = mModels.get(position);
         holder.bind(model);
     }
 
@@ -65,32 +67,32 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
         return mModels.size();
     }
 
-    public void animateTo(List<ExampleModel> models) {
+    public void animateTo(List<UserModel> models) {
         applyAndAnimateRemovals(models);
         applyAndAnimateAdditions(models);
         applyAndAnimateMovedItems(models);
     }
-    private void applyAndAnimateRemovals(List<ExampleModel> newModels) {
+    private void applyAndAnimateRemovals(List<UserModel> newModels) {
         for (int i = mModels.size() - 1; i >= 0; i--) {
-            final ExampleModel model = mModels.get(i);
+            final UserModel model = mModels.get(i);
             if (!newModels.contains(model)) {
                 removeItem(i);
             }
         }
     }
 
-    public void applyAndAnimateAdditions(List<ExampleModel> newModels) {
+    public void applyAndAnimateAdditions(List<UserModel> newModels) {
         for (int i = 0, count = newModels.size(); i < count; i++) {
-            final ExampleModel model = newModels.get(i);
+            final UserModel model = newModels.get(i);
             if (!mModels.contains(model)) {
                 addItem(i, model);
             }
         }
     }
 
-    private void applyAndAnimateMovedItems(List<ExampleModel> newModels) {
+    private void applyAndAnimateMovedItems(List<UserModel> newModels) {
         for (int toPosition = newModels.size() - 1; toPosition >= 0; toPosition--) {
-            final ExampleModel model = newModels.get(toPosition);
+            final UserModel model = newModels.get(toPosition);
             final int fromPosition = mModels.indexOf(model);
             if (fromPosition >= 0 && fromPosition != toPosition) {
                 moveItem(fromPosition, toPosition);
@@ -98,19 +100,19 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
         }
     }
 
-    public ExampleModel removeItem(int position) {
-        final ExampleModel model = mModels.remove(position);
+    public UserModel removeItem(int position) {
+        final UserModel model = mModels.remove(position);
         notifyItemRemoved(position);
         return model;
     }
 
-    public void addItem(int position, ExampleModel model) {
+    public void addItem(int position, UserModel model) {
         mModels.add(position, model);
         notifyItemInserted(position);
     }
 
     public void moveItem(int fromPosition, int toPosition) {
-        final ExampleModel model = mModels.remove(fromPosition);
+        final UserModel model = mModels.remove(fromPosition);
         mModels.add(toPosition, model);
         notifyItemMoved(fromPosition, toPosition);
     }
@@ -124,7 +126,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
 
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,View.OnLongClickListener {
 
-        private final TextView tvText;
+        private final TextView tvText,tvEmail;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -132,10 +134,14 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
             tvText = (TextView) itemView.findViewById(R.id.tv_name);
+            tvEmail = (TextView) itemView.findViewById(R.id.tv_last_chat);
         }
 
-        public void bind(ExampleModel model) {
-            tvText.setText(model.getText());
+        public void bind(UserModel model) {
+            tvText.setText(model.getName());
+            if(tab==3){
+                tvEmail.setText(model.getEmail());
+            }
         }
 
         @Override

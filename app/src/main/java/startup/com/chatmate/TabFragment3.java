@@ -1,6 +1,7 @@
 package startup.com.chatmate;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -16,6 +17,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +32,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,13 +51,15 @@ import java.util.List;
 public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListener,RecycleAdapter.onLongListener{
     String[] Contacts = new String[] { "Harshil","Dishank","Karan","Param","Kunal","Keyur","Maikhar","Mohit","Dipshil","Crush","Crusher","Emma Watson","Jim Carrey","Cristiano Ronaldo","Batman"};
     ArrayList<String> contacts_array = new ArrayList<String>(Arrays.asList(Contacts));
-    private List<ExampleModel> mModels;
+    private List<UserModel> mModels;
 
-    //CustomListAdapter adapter;
+
     RecycleAdapter adapter;
 
     RecyclerView lv;
     String items[]={"Delete","Update","Cancel"};
+    String URL = "http://chatmate.comlu.com/fetch_user.php";
+    ProgressDialog pDialog;
 
 
     @Override
@@ -60,19 +75,19 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
     Toolbar toolbar;
     Button b_add;
     DBhandler db;
+    private RequestQueue mQueue;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab_layout_3, container, false);
         db = new DBhandler(getActivity());
         final View promptsView = inflater.inflate(R.layout.custom_prompt, null);
+        mQueue = CustomVolleyRequestQueue.getInstance(getActivity().getApplicationContext())
+                .getRequestQueue();
 
-
-
-        et_name = (EditText)promptsView.findViewById(R.id.et_name);
         et_no = (EditText)promptsView.findViewById(R.id.et_no);
 
-
+        pDialog = new ProgressDialog(getActivity());
 
 
 
@@ -96,11 +111,12 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         //db.deleteAll();
         List<Contact> contacts = db.getAllContacts();
         for (Contact cn : contacts) {
-            mModels.add(new ExampleModel(cn.getName()));
+            UserModel user = new UserModel(cn.getName(),cn.getEmail(),0);
+            mModels.add(user);
         }
 
 
-        adapter=new RecycleAdapter(getActivity(),mModels);
+        adapter=new RecycleAdapter(getActivity(),mModels,3);
 
         lv.setItemAnimator(new DefaultItemAnimator());
         lv.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
@@ -113,7 +129,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
 
 
 
-/*
+
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
                 getActivity());
         alertDialogBuilder.setView(promptsView);
@@ -124,15 +140,14 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
                             public void onClick(DialogInterface dialog,int id) {
                                 // get user input and set it to result
                                 // edit text
-                                String name = et_name.getText().toString();
-                                String no = et_no.getText().toString();
+                                String no = et_no.getText().toString().trim();
+                                pDialog.setMessage("Connecting to server");
+                                pDialog.setCancelable(false);
+                                pDialog.show();
+                                volleyQuery(no);
 
                                 //if(!(name.equals("") && no.equals(""))){
-                                db.addContact(new Contact(name,no));
-                                mModels.add(new ExampleModel(name));
-                                adapter.applyAndAnimateAdditions(mModels);
-                                Toast.makeText(getActivity(), "Contact added", Toast.LENGTH_SHORT);
-                                dialog.cancel();
+                                                               dialog.cancel();
                                 // }else{
                                 //    Toast.makeText(getActivity(),"Invalid input",Toast.LENGTH_SHORT);
                                 //}
@@ -147,7 +162,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
                             }
                         });
 
-        final AlertDialog alertDialog = alertDialogBuilder.create();*/
+        final AlertDialog alertDialog = alertDialogBuilder.create();
 
 
 
@@ -157,9 +172,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-                startActivityForResult(intent, 1);
+            alertDialog.show();
 
             }
         });
@@ -170,12 +183,65 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         return view;
     }
 
+    private void volleyQuery(final String email) {
+        Log.i("email",email);
+        JSONObject son = new JSONObject();
+        try {
+            son.put("email", email);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+        JsonArrayRequest jreq = new JsonArrayRequest(Request.Method.POST,URL,son, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray jsonArray) {
+                pDialog.dismiss();
+                try {
+                    JSONObject result = jsonArray.getJSONObject(0);
+                    JSONArray name = jsonArray.getJSONArray(1);
+                    int success = result.getInt("success");
+                    Log.i("success",""+success);
+                    if(success==1){
+                        db.addContact(new Contact(name.getString(0),email));
+                        mModels.add(new UserModel(name.getString(0),email,0));
+                        adapter.applyAndAnimateAdditions(mModels);
+                        Toast.makeText(getActivity(), "Contact added", Toast.LENGTH_SHORT).show();
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                pDialog.dismiss();
+                volleyError.printStackTrace();
+            }
+        });
+
+        jreq.setRetryPolicy(new DefaultRetryPolicy(
+                5000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        mQueue.add(jreq);
+
+    }
+
 
     public void deleteAll(){
         db.deleteAll();
         List<Contact> contacts = db.getAllContacts();
         for (Contact cn : contacts) {
-            mModels.add(new ExampleModel(cn.getName()));
+            UserModel user = new UserModel(cn.getName(),cn.getEmail(),0);
+            mModels.add(user);
         }
         adapter.applyAndAnimateAdditions(mModels);
         Toast.makeText(getActivity(),"All contacts deleted",Toast.LENGTH_SHORT).show();
@@ -184,48 +250,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
     }
 
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // TODO Auto-generated method stub
-        super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == 1) {
-            if (resultCode == Activity.RESULT_OK) {
-                Uri contactData = data.getData();
-
-                Cursor c = getActivity().getContentResolver().query(contactData, null, null, null, null);
-                if (c.moveToFirst()) {
-                    String id = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
-
-                    String hasPhone =
-                            c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
-
-                    if (hasPhone.equalsIgnoreCase("1")) {
-                        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id, null, null);
-
-                        String name=c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                        phones.moveToFirst();
-                        String cNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-
-                        Toast.makeText(getActivity(), cNumber, Toast.LENGTH_SHORT).show();
-                        //setCn(cNumber);
-
-                        Contact contact = new Contact();
-                        contact.setName(name);
-                        contact.setPhoneNumber(cNumber);
-                        db.addContact(contact);
-                        mModels.add(new ExampleModel(name));
-                        adapter.applyAndAnimateAdditions(mModels);
-                        Toast.makeText(getActivity(), "Contact added", Toast.LENGTH_SHORT).show();
-
-
-                    }
-                }
-
-            }
-        }
-    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -239,7 +264,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                final List<ExampleModel> filteredModelList = filter(mModels, s.toString());
+                final List<UserModel> filteredModelList = filter(mModels, s.toString());
                 adapter.animateTo(filteredModelList);
                 lv.scrollToPosition(0);
             }
@@ -251,12 +276,12 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         });
     }
 
-    private List<ExampleModel> filter(List<ExampleModel> models, String query) {
+    private List<UserModel> filter(List<UserModel> models, String query) {
         query = query.toLowerCase();
 
-        final List<ExampleModel> filteredModelList = new ArrayList<>();
-        for (ExampleModel model : models) {
-            final String text = model.getText().toLowerCase();
+        final List<UserModel> filteredModelList = new ArrayList<>();
+        for (UserModel model : models) {
+            final String text = model.getName().toLowerCase();
             if (text.contains(query)) {
                 filteredModelList.add(model);
             }
@@ -268,9 +293,14 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
     @Override
     public void itemClicked(View view, int position) {
         TextView tv = (TextView) view.findViewById(R.id.tv_name);
+        TextView tv_email = (TextView) view.findViewById(R.id.tv_last_chat);
         String name = tv.getText().toString();
+        String email = tv_email.getText().toString();
         Intent i = new Intent(getActivity(), ChatActivity.class);
         i.putExtra("name", name);
+        i.putExtra("email",email);
+        UserModel user = new UserModel(name,email,0);
+        //((MainActivity)getActivity()).update_chat_list(user);
         startActivity(i);
     }
 

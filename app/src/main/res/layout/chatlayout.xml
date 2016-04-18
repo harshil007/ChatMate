@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             >
-            <startup.com.whatsapp.CircularImageView
+            <startup.com.chatmate.CircularImageView
                 android:id="@+id/imageview"
                 android:layout_width="47dp"
                 android:layout_height="47dp"

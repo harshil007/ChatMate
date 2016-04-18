@@ -8,23 +8,23 @@ public class Contact {
     //private variables
     int _id;
     String _name;
-    String _phone_number;
+    String _email;
 
     // Empty constructor
     public Contact(){
 
     }
     // constructor
-    public Contact(int id, String name, String _phone_number){
+    public Contact(int id, String name, String _email){
         this._id = id;
         this._name = name;
-        this._phone_number = _phone_number;
+        this._email = _email;
     }
 
     // constructor
-    public Contact(String name, String _phone_number){
+    public Contact(String name, String _email){
         this._name = name;
-        this._phone_number = _phone_number;
+        this._email = _email;
     }
     // getting ID
     public int getID(){
@@ -47,12 +47,12 @@ public class Contact {
     }
 
     // getting phone number
-    public String getPhoneNumber(){
-        return this._phone_number;
+    public String getEmail(){
+        return this._email;
     }
 
     // setting phone number
-    public void setPhoneNumber(String phone_number){
-        this._phone_number = phone_number;
+    public void setEmail(String email){
+        this._email = email;
     }
 }

@@ -17,7 +17,7 @@ public class DBhandler extends SQLiteOpenHelper {
     private static final String DB_NAME = "main";
     private static final String TABLE_CONTACTS = "Contacts";
     private static final String KEY_ID = "_id";
-    private static final String PHONE = "_phone";
+    private static final String EMAIL = "email";
     private static final String NAME = "name";
     private static final int DATABASE_VERSION=1;
 
@@ -30,7 +30,7 @@ public class DBhandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_CONTACTS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY," + NAME + " TEXT,"
-                + PHONE + " TEXT" + ")";
+                + EMAIL + " TEXT" + ")";
         db.execSQL(CREATE_CONTACTS_TABLE);
     }
 
@@ -46,7 +46,7 @@ public class DBhandler extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(NAME, contact.getName()); // Contact Name
-        values.put(PHONE, contact.getPhoneNumber()); // Contact Phone Number
+        values.put(EMAIL, contact.getEmail()); // Contact Phone Number
 
         // Inserting Row
         db.insert(TABLE_CONTACTS, null, values);
@@ -57,7 +57,7 @@ public class DBhandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_ID,
-                        NAME, PHONE }, KEY_ID + "=?",
+                        NAME, EMAIL }, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
@@ -82,7 +82,7 @@ public class DBhandler extends SQLiteOpenHelper {
                 Contact contact = new Contact();
                 contact.setID(Integer.parseInt(cursor.getString(0)));
                 contact.setName(cursor.getString(1));
-                contact.setPhoneNumber(cursor.getString(2));
+                contact.setEmail(cursor.getString(2));
                 // Adding contact to list
                 contactList.add(contact);
             } while (cursor.moveToNext());
@@ -97,7 +97,7 @@ public class DBhandler extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(NAME, contact.getName());
-        values.put(PHONE, contact.getPhoneNumber());
+        values.put(EMAIL, contact.getEmail());
 
 
         // updating row

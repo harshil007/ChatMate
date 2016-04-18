@@ -41,15 +41,30 @@
                 android:layout_alignParentRight="true"
 
                 />
-            <TextView
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv_time_me"
-                android:layout_alignParentRight="true"
                 android:layout_below="@+id/tv_chat"
-                android:textSize="13sp"
-                android:text=""
-                />
+                android:layout_alignParentRight="true"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tv_time_me"
+                    android:textSize="13sp"
+                    android:text=""
+                    />
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:id="@+id/iv_msg_me_status"
+                    android:src="@drawable/ic_done_black_24dp"
+                    />
+
+            </LinearLayout>
 
 
         </RelativeLayout>

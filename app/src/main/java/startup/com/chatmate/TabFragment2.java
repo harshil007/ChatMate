@@ -46,10 +46,10 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
 
     String[] Chat = new String[] { "Harshil","Dishank","Karan","Param","Kunal","Keyur","Maikhar","Mohit","Dipshil","Crush","Crusher","Cristiano Ronaldo"};
     ArrayList<String> chat_array = new ArrayList<String>(Arrays.asList(Chat));
-    private List<ExampleModel> mModels;
+    private List<UserModel> mModels;
 
 
-    //CustomListAdapter adapter;
+
     RecycleAdapter adapter;
     LinearLayout ll;
     RecyclerView lv;
@@ -78,14 +78,15 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
 
         mModels = new ArrayList<>();
 
+        /*
         for (String name : Chat) {
-            mModels.add(new ExampleModel(name));
+            mModels.add(new UserModel(name,"",));
         }
+        */
 
 
 
-
-        adapter=new RecycleAdapter(getActivity(),mModels);
+        adapter=new RecycleAdapter(getActivity(),mModels,2);
         lv.setItemAnimator(new DefaultItemAnimator());
         lv.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         lv.setAdapter(adapter);
@@ -106,6 +107,11 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
         adapter.setClickListener(this);
 
         return view;
+    }
+
+    public void update_list(UserModel userModel){
+        mModels.add(userModel);
+        adapter.animateTo(mModels);
     }
 
     @Override
@@ -156,7 +162,7 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
 
            @Override
            public void onTextChanged(CharSequence s, int start, int before, int count) {
-               final List<ExampleModel> filteredModelList = filter(mModels, s.toString());
+               final List<UserModel> filteredModelList = filter(mModels, s.toString());
                adapter.animateTo(filteredModelList);
                lv.scrollToPosition(0);
            }
@@ -171,12 +177,12 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
 
     }
 
-    private List<ExampleModel> filter(List<ExampleModel> models, String query) {
+    private List<UserModel> filter(List<UserModel> models, String query) {
         query = query.toLowerCase();
 
-        final List<ExampleModel> filteredModelList = new ArrayList<>();
-        for (ExampleModel model : models) {
-            final String text = model.getText().toLowerCase();
+        final List<UserModel> filteredModelList = new ArrayList<>();
+        for (UserModel model : models) {
+            final String text = model.getName().toLowerCase();
             if (text.contains(query)) {
                 filteredModelList.add(model);
             }

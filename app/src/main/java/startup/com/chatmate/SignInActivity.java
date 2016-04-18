@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -31,12 +32,14 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     private ProgressDialog mProgressDialog;
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
+    private String yo;
 
     SharedPreferences pref;
     SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
 
@@ -51,6 +54,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         signInButton.setScopes(gso.getScopeArray());
+        signInButton.setOnClickListener(this);
 
     }
 
@@ -91,8 +95,11 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
             String id = acct.getId();
             String name = acct.getDisplayName();
+
             String email = acct.getEmail();
             String photourl = String.valueOf(acct.getPhotoUrl());
+
+            Log.i("G+","Name: "+name+"\nEmail: "+email+"\nurl: "+photourl);
 
             editor.putString("ID",id);
             editor.putString("Name",name);
@@ -100,7 +107,8 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             editor.putString("Pic_url",photourl);
             editor.commit();
 
-            Intent i = new Intent(SignInActivity.this, MainActivity.class);
+            Intent i = new Intent(SignInActivity.this, ProfileActivity.class);
+            finish();
             startActivity(i);
         }else{
             Toast.makeText(SignInActivity.this, "Wrong credentials",Toast.LENGTH_LONG).show();
@@ -116,7 +124,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     private void showProgressDialog() {
         if (mProgressDialog == null) {
             mProgressDialog = new ProgressDialog(this);
-            mProgressDialog.setMessage(getString(R.string.loading));
+            mProgressDialog.setMessage("Loading..");
             mProgressDialog.setIndeterminate(true);
         }
 

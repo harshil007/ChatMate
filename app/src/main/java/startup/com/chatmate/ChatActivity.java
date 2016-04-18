@@ -1,10 +1,17 @@
 package startup.com.chatmate;
 
 import android.app.Activity;
+import android.app.Application;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +25,21 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.Socket;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,14 +62,30 @@ public class ChatActivity extends AppCompatActivity{
     RecyclerView lv;
     ImageView enter;
     int chat_active=0;
+    boolean is_online=false;
+    SharedPreferences pref;
 
     String today;
+    String name,email;
     Calendar calendar;
+
+    String URL = "http://chatmate.comlu.com/send_msg.php";
+
+    private Socket mSocket;
+    private RequestQueue mQueue;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chatlayout);
+        //ChatApplication app = (ChatApplication) getApplication();
+        //mSocket = app.getSocket();
+        //mSocket.on(Socket.EVENT_CONNECT_ERROR,);
+        //mSocket.on("newMsgRc", msgReceived);
+        //mSocket.on("userConnect", userConnected);
+        //mSocket.on("userDisconnect", userDisconnected);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar1);
         toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
         setSupportActionBar(toolbar);
@@ -59,13 +97,15 @@ public class ChatActivity extends AppCompatActivity{
 
 
 
-        String name = getIntent().getExtras().getString("name");
+        name = getIntent().getExtras().getString("name");
+        email = getIntent().getExtras().getString("email");
         TextView tv_name = (TextView) findViewById(R.id.tv_name);
         tv_name.setText(name);
 
         et_msg = (EditText) findViewById(R.id.et_msg);
 
-
+        mQueue = CustomVolleyRequestQueue.getInstance(this.getApplicationContext())
+                .getRequestQueue();
 
         chat_array = new ArrayList<>();
 
@@ -106,7 +146,7 @@ public class ChatActivity extends AppCompatActivity{
                 }
             }
         });
-
+        pref = getSharedPreferences("Registration", 0);
 
 
 
@@ -130,11 +170,94 @@ public class ChatActivity extends AppCompatActivity{
                     et_msg.setText("");
                     enter.setImageDrawable(getResources().getDrawable(R.drawable.ic_chat_send));
                     chat_active=0;
+                    volley_send(txt);
                 }
             }
         });
 
+
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                calendar = Calendar.getInstance();
+                int Hr24=calendar.get(Calendar.HOUR_OF_DAY);
+                int Min=calendar.get(Calendar.MINUTE);
+                String timestamp = Hr24+":"+Min;
+                String message = intent.getStringExtra("data");
+                String sender = intent.getStringExtra("name");
+                if(sender.equals(email)){
+                    ChatMessage chatMessage = new ChatMessage();
+                    chatMessage.setMessageText(message);
+                    chatMessage.setMessageTime(timestamp);
+                    chatMessage.setUserType(UserType.OTHER);
+                    chat_array.add(chatMessage);
+                    adapter.animateTo(chat_array);
+                    lv.scrollToPosition(chat_array.size() - 1);
+                }
+
+                //mAdapter.add(chatMessage);
+                //scrollMyListViewToBottom();
+                //tv1.setText(message);
+
+            }
+        };
+
     }
+
+    public void volley_send(String message){
+
+        String sender = pref.getString("Email","nope");
+        String sendMsg = sender+" "+message;
+        JSONObject son = new JSONObject();
+        try {
+            son.put("email",email);
+            son.put("sender",sender);
+            son.put("message",sendMsg);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest jreq = new JsonObjectRequest(URL, son, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    int success = response.getInt("success");
+                    //String message = response.getString("message");
+                    //Toast.makeText(ChatActivity.this,message,Toast.LENGTH_SHORT).show();
+                    if(success==1){
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+
+        jreq.setRetryPolicy(new DefaultRetryPolicy(
+                5000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        mQueue.add(jreq);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,new IntentFilter("pushmsg"));
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -178,6 +301,54 @@ public class ChatActivity extends AppCompatActivity{
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+
+
+    /*
+    Emitter.Listener msgReceived = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                    @Override
+                public void run() {
+                    calendar = Calendar.getInstance();
+                    int Hr24=calendar.get(Calendar.HOUR_OF_DAY);
+                    int Min=calendar.get(Calendar.MINUTE);
+                    String timestamp = Hr24+":"+Min;
+                    JSONObject ob =(JSONObject)args[0];
+                    ChatMessage msg = new ChatMessage();
+                    try {
+                        msg.setUserType(UserType.OTHER);
+                        msg.setMessageText(ob.getString("messageText"));
+                        msg.setMessageTime(timestamp);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    chat_array.add(msg);
+                    adapter.animateTo(chat_array);
+                    lv.scrollToPosition(chat_array.size() - 1);
+
+                }
+            });
+        }
+    };
+
+    Emitter.Listener userConnected = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+
+        }
+    };
+
+
+    Emitter.Listener userDisconnected = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+
+        }
+    };
+*/
 
 
 }
