@@ -44,7 +44,9 @@
         </service>
 
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAINACTIVITY" />
 
@@ -56,6 +58,7 @@
         </activity>
         <activity
             android:name=".ChatActivity"
+            android:screenOrientation="portrait"
             >
             <intent-filter>
                 <action android:name="android.intent.action.CHATACTIVITY" />
@@ -65,7 +68,8 @@
         </activity>
 
 
-        <activity android:name=".SignInActivity">
+        <activity android:name=".SignInActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
 
 
@@ -75,7 +79,9 @@
 
             </intent-filter>
         </activity>
-        <activity android:name=".ProfileActivity">
+        <activity android:name=".ProfileActivity"
+            android:launchMode="singleTop"
+            >
             <intent-filter>
             <action android:name="android.intent.action.PROFILEACTIVITY" />
 

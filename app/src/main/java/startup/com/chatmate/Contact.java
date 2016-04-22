@@ -6,20 +6,34 @@ package startup.com.chatmate;
 public class Contact {
 
     //private variables
-    int _id;
+    String _id;
     String _name;
     String _email;
+    String img_url;
+
+
+
+    public String getImg_url() {
+        return img_url;
+    }
+
+    public void setImg_url(String img_url) {
+        this.img_url = img_url;
+    }
 
     // Empty constructor
     public Contact(){
 
     }
     // constructor
-    public Contact(int id, String name, String _email){
+    public Contact(String id, String name, String _email,String img_url){
         this._id = id;
         this._name = name;
         this._email = _email;
+        this.img_url = img_url;
     }
+
+
 
     // constructor
     public Contact(String name, String _email){
@@ -27,12 +41,12 @@ public class Contact {
         this._email = _email;
     }
     // getting ID
-    public int getID(){
+    public String getID(){
         return this._id;
     }
 
     // setting id
-    public void setID(int id){
+    public void setID(String id){
         this._id = id;
     }
 

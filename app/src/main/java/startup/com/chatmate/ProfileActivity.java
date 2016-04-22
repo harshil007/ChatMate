@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 
 /**
@@ -26,7 +27,7 @@ public class ProfileActivity extends AppCompatActivity {
     Button b_okay;
     SharedPreferences pref;
     SharedPreferences.Editor editor;
-    String name,email,img_url;
+    String name,email,img_url,id;
 
 
 
@@ -36,6 +37,7 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.profile_activity);
         pref = getSharedPreferences("Registration", 0);
 
+        id=pref.getString("ID","49");
         name = pref.getString("Name","Emma Watson.!");
         email= pref.getString("Email","emma.watson@harshil.com");
         img_url = pref.getString("Pic_url","R.drawable.emma_watson");
@@ -55,11 +57,18 @@ public class ProfileActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
+        Picasso.with(this)
+                .load(img_url)
+                .placeholder(R.drawable.load)
+                //.priority(Picasso.Priority.HIGH)
+                .into(iv_profile);
+        /*
         Glide.with(this)
                 .load(img_url)
                 .placeholder(R.drawable.load)
                 .thumbnail( 0.1f )
                 .crossFade()
-                .into(iv_profile);
+                .into(iv_profile);*/
     }
 }

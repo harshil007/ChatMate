@@ -23,7 +23,7 @@
             android:orientation="horizontal"
             >
             <startup.com.chatmate.CircularImageView
-                android:id="@+id/imageview"
+                android:id="@+id/iv_image"
                 android:layout_width="47dp"
                 android:layout_height="47dp"
                 android:src="@drawable/ic_account" />

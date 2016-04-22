@@ -109,11 +109,6 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         }*/
 
         //db.deleteAll();
-        List<Contact> contacts = db.getAllContacts();
-        for (Contact cn : contacts) {
-            UserModel user = new UserModel(cn.getName(),cn.getEmail(),0);
-            mModels.add(user);
-        }
 
 
         adapter=new RecycleAdapter(getActivity(),mModels,3);
@@ -126,6 +121,12 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         lv.setLayoutManager(new LinearLayoutManager(getActivity()));
 
 
+        List<Contact> contacts = db.getAllContacts();
+        for (Contact cn : contacts) {
+            UserModel user = new UserModel(cn.getID(),cn.getName(),cn.getEmail(),cn.getImg_url(),0);
+            mModels.add(user);
+            adapter.animateTo(mModels);
+        }
 
 
 
@@ -133,7 +134,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
                 getActivity());
         alertDialogBuilder.setView(promptsView);
-        alertDialogBuilder.setTitle("Contact details")
+        alertDialogBuilder.setTitle("Google plus Email id:")
                 .setCancelable(false)
                 .setPositiveButton("OK",
                         new DialogInterface.OnClickListener() {
@@ -203,11 +204,13 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
                 try {
                     JSONObject result = jsonArray.getJSONObject(0);
                     JSONArray name = jsonArray.getJSONArray(1);
+                    JSONArray id_array = jsonArray.getJSONArray(2);
+                    JSONArray img_array = jsonArray.getJSONArray(3);
                     int success = result.getInt("success");
                     Log.i("success",""+success);
                     if(success==1){
-                        db.addContact(new Contact(name.getString(0),email));
-                        mModels.add(new UserModel(name.getString(0),email,0));
+                        db.addContact(new Contact(id_array.getString(0),name.getString(0),email,img_array.getString(0)));
+                        mModels.add(new UserModel(id_array.getString(0),name.getString(0),email,img_array.getString(0),0));
                         adapter.applyAndAnimateAdditions(mModels);
                         Toast.makeText(getActivity(), "Contact added", Toast.LENGTH_SHORT).show();
 
@@ -240,7 +243,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         db.deleteAll();
         List<Contact> contacts = db.getAllContacts();
         for (Contact cn : contacts) {
-            UserModel user = new UserModel(cn.getName(),cn.getEmail(),0);
+            UserModel user = new UserModel(cn.getID(),cn.getName(),cn.getEmail(),cn.getImg_url(),0);
             mModels.add(user);
         }
         adapter.applyAndAnimateAdditions(mModels);
@@ -282,7 +285,8 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         final List<UserModel> filteredModelList = new ArrayList<>();
         for (UserModel model : models) {
             final String text = model.getName().toLowerCase();
-            if (text.contains(query)) {
+            final String email = model.getEmail();
+            if (text.contains(query) || email.contains(query)) {
                 filteredModelList.add(model);
             }
         }
@@ -296,13 +300,21 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
         TextView tv_email = (TextView) view.findViewById(R.id.tv_last_chat);
         String name = tv.getText().toString();
         String email = tv_email.getText().toString();
+        UserModel usr = mModels.get(position);
+        String id = usr.getId();
+        String img_url = usr.getImg_url();
         Intent i = new Intent(getActivity(), ChatActivity.class);
+        i.putExtra("id",id);
         i.putExtra("name", name);
         i.putExtra("email",email);
-        UserModel user = new UserModel(name,email,0);
-        //((MainActivity)getActivity()).update_chat_list(user);
+        i.putExtra("img_url",img_url);
+        UserModel user = new UserModel(id,name,email,img_url,0);
+        ((MainActivity)getActivity()).update_chat_list(user);
         startActivity(i);
     }
+
+
+
 
     @Override
     public void itemLongClicked(View view, int position) {
@@ -312,9 +324,7 @@ public class TabFragment3 extends Fragment implements RecycleAdapter.ClickListen
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 if (items[item].equals("Delete")) {
-
-                } else if (items[item].equals("Update")) {
-
+                    //db.deleteContact();
                 } else if (items[item].equals("Cancel")) {
                     dialog.dismiss();
                 }

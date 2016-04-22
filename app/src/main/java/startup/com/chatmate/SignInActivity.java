@@ -99,7 +99,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             String email = acct.getEmail();
             String photourl = String.valueOf(acct.getPhotoUrl());
 
-            Log.i("G+","Name: "+name+"\nEmail: "+email+"\nurl: "+photourl);
+            Log.i("G+","ID: "+id+"\nName: "+name+"\nEmail: "+email+"\nurl: "+photourl);
 
             editor.putString("ID",id);
             editor.putString("Name",name);
@@ -111,7 +111,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             finish();
             startActivity(i);
         }else{
-            Toast.makeText(SignInActivity.this, "Wrong credentials",Toast.LENGTH_LONG).show();
+            Toast.makeText(SignInActivity.this, "Sign In",Toast.LENGTH_LONG).show();
         }
     }
 

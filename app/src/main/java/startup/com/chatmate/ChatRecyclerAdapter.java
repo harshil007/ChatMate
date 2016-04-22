@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -30,6 +31,11 @@ public class ChatRecyclerAdapter extends RecyclerView.Adapter<ChatRecyclerAdapte
         this.context = context;
         this.group = group;
         inflater = LayoutInflater.from(context);
+
+    }
+
+
+    public void set_status(){
 
     }
 
@@ -75,6 +81,12 @@ public class ChatRecyclerAdapter extends RecyclerView.Adapter<ChatRecyclerAdapte
         if(user == UserType.SELF){
             holder.tvTextMe.setText(msg);
             holder.tvTimeMe.setText(time);
+            if(message.getMessageStatus()==Status.SENT){
+                holder.ivStatus.setImageResource(R.drawable.ic_done_black_24dp);
+            }
+            else if(message.getMessageStatus()==Status.DELIVERED){
+                holder.ivStatus.setImageResource(R.drawable.ic_done_all_black_24dp);
+            }
         }
         else if(user == UserType.OTHER){
             holder.tvTextThem.setText(msg);
@@ -108,6 +120,7 @@ public class ChatRecyclerAdapter extends RecyclerView.Adapter<ChatRecyclerAdapte
         private final TextView tvMsgDummy;
         private final TextView tvUserName;
 
+        private final ImageView ivStatus;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -118,7 +131,7 @@ public class ChatRecyclerAdapter extends RecyclerView.Adapter<ChatRecyclerAdapte
             tvTimeThem = (TextView) itemView.findViewById(R.id.tv_time_them);
             tvMsgDummy = (TextView) itemView.findViewById(R.id.tv_chat_dummy);
             tvUserName = (TextView) itemView.findViewById(R.id.tv_userName);
-
+            ivStatus = (ImageView) itemView.findViewById(R.id.iv_msg_me_status);
         }
     
         @Override

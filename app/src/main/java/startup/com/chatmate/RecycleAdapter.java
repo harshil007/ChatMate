@@ -11,7 +11,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
@@ -48,6 +51,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
         this.context = context;
         //getFilter();*/
     }
+
 
 
     @Override
@@ -127,6 +131,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,View.OnLongClickListener {
 
         private final TextView tvText,tvEmail;
+        private final ImageView iv_profile;
 
         public MyViewHolder(View itemView) {
             super(itemView);
@@ -135,6 +140,7 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
             itemView.setOnLongClickListener(this);
             tvText = (TextView) itemView.findViewById(R.id.tv_name);
             tvEmail = (TextView) itemView.findViewById(R.id.tv_last_chat);
+            iv_profile = (ImageView) itemView.findViewById(R.id.iv_chat_profile);
         }
 
         public void bind(UserModel model) {
@@ -142,6 +148,10 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecycleAdapter.MyViewHo
             if(tab==3){
                 tvEmail.setText(model.getEmail());
             }
+            Picasso.with(context)
+                    .load(model.getImg_url())
+                    .placeholder(R.drawable.ic_account)
+                    .into(iv_profile);
         }
 
         @Override

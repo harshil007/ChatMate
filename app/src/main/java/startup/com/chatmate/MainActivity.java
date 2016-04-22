@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -41,10 +43,14 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -68,10 +74,11 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     SharedPreferences pref;
     SharedPreferences.Editor editor;
-    String name,email,img_url,token;
+    String name,email,img_url,token,id,image_url;
     ProgressDialog pDialog;
     PagerAdapter adapter;
     private static final String SENDER = "795935506721";
+    ChatDBHelper chatDBHelper;
 
     @Override
     protected void onResume() {
@@ -99,12 +106,15 @@ public class MainActivity extends AppCompatActivity {
         name = pref.getString("Name","Emma Watson.!");
         email= pref.getString("Email","emma.watson@harshil.com");
         img_url = pref.getString("Pic_url","R.drawable.emma_watson");
+        id=pref.getString("ID","49");
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Connecting to Server...");
         pDialog.setCancelable(false);
         pDialog.show();
 
         registerGCM();
+
+        chatDBHelper = new ChatDBHelper(this);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("OFFLINE"));
@@ -146,8 +156,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void update_chat_list(UserModel user){
-        TabFragment2 tab2 =(TabFragment2) adapter.getFragment(1);
-        tab2.update_list(user);
+        chatDBHelper.deleteChat(user);
+        chatDBHelper.addContact(user);
+        TabFragment2 tb = (TabFragment2)adapter.getFragment(1);
+        tb.fetch_chats();
     }
 
     private void registerGCM() {
@@ -177,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 editor = pref.edit();
                 editor.putString("token",token);
                 editor.apply();
+                uploadImage();
                 volleyRegister();
 
             }
@@ -184,6 +197,16 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private void uploadImage() {
+        InputStream is = getInputStreamFromURL(img_url);
+        String name="u_"+id+".png";
+        new FTP().execute(name,is);
+        image_url = "http://chatmate.comlu.com/Images/profile_pics/"+name;
+        editor = pref.edit();
+        editor.putString("Pic_url",image_url);
+        editor.apply();
     }
 
     @Override
@@ -208,7 +231,8 @@ public class MainActivity extends AppCompatActivity {
             son.put("email", email);
             son.put("name", name);
             son.put("token",token);
-
+            son.put("id",id);
+            son.put("image_url",image_url);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -258,5 +282,66 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    public InputStream getInputStreamFromURL(String src) {
+        try {
+            java.net.URL url = new java.net.URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url
+                    .openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            //Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return input;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    class FTP extends AsyncTask<Object,Void,Void> {
+
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            String name = (String) params[0];
+            InputStream inputstream = (InputStream) params[1];
+            FTPClient ftp = new FTPClient();
+
+            if(inputstream==null){
+                return null;
+            }
+
+            try {
+                ftp.connect("chatmate.comlu.com");
+                if(!ftp.login("a5619188", "WhySoSerious7"))
+                {
+                    ftp.logout();
+                    return null;
+                }
+                int reply = ftp.getReplyCode();
+                //FTPReply stores a set of constants for FTP reply codes.
+                if (!FTPReply.isPositiveCompletion(reply))
+                {
+                    ftp.disconnect();
+                    return null;
+                }
+                ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
+                ftp.enterLocalPassiveMode();
+                ftp.changeWorkingDirectory("/public_html/Images/profile_pics");
+                ftp.storeFile(name,inputstream);
+                ftp.logout();
+                ftp.disconnect();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            }
+
+            return null;
+        }
+    }
+
 
 }

@@ -23,7 +23,7 @@ public class MessageDBHelper extends SQLiteOpenHelper{
     private static final String TIME = "time";
     private static final int DATABASE_VERSION=1;
 
-
+    public static int TABLE_CREATED = 0;
 
 
     public MessageDBHelper(Context context, String table_name) {
@@ -37,7 +37,20 @@ public class MessageDBHelper extends SQLiteOpenHelper{
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + MSG + " TEXT,"
                 + TIME + " TEXT," + USER_TYPE + " TEXT" + ")";
         db.execSQL(CREATE_CONTACTS_TABLE);
+        TABLE_CREATED=1;
+        //create_table(db);
     }
+
+    public void create_table(String tb_name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + tb_name);
+        String CREATE_CONTACTS_TABLE = "CREATE TABLE " + tb_name + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + MSG + " TEXT,"
+                + TIME + " TEXT," + USER_TYPE + " TEXT" + ")";
+        db.execSQL(CREATE_CONTACTS_TABLE);
+        TABLE_CREATED=1;
+    }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -91,9 +104,9 @@ public class MessageDBHelper extends SQLiteOpenHelper{
         if (cursor.moveToFirst()) {
             do {
                 ChatMessage msg = new ChatMessage();
-                msg.setMessageText(cursor.getString(0));
-                msg.setMessageTime(cursor.getString(1));
-                String user = cursor.getString(2);
+                msg.setMessageText(cursor.getString(1));
+                msg.setMessageTime(cursor.getString(2));
+                String user = cursor.getString(3);
                 UserType userType = UserType.SELF;
                 switch (user){
                     case "SELF" :

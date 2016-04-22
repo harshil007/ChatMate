@@ -114,7 +114,7 @@ public class GroupChatActivity extends AppCompatActivity{
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         lv = (RecyclerView) findViewById(R.id.rc_chat);
-        iv = (CircularImageView) findViewById(R.id.imageview);
+        iv = (CircularImageView) findViewById(R.id.iv_image);
         iv.setImageDrawable(getResources().getDrawable(R.drawable.ic_group_black_36dp));
 
         String name = getIntent().getExtras().getString("name");

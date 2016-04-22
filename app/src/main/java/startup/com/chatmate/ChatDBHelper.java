@@ -10,58 +10,57 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Harshil on 18/03/2016.
+ * Created by Dishank on 4/23/2016.
  */
-public class DBhandler extends SQLiteOpenHelper {
+public class ChatDBHelper extends SQLiteOpenHelper{
 
-    private static final String DB_NAME = "main";
-    private static final String TABLE_CONTACTS = "Contacts";
+    private static final String DB_NAME = "cmain";
+    private static final String TABLE_CHAT = "Chat";
+    //private static final String KEY_ID = "_id";
     private static final String KEY_ID = "_id";
     private static final String EMAIL = "email";
     private static final String NAME = "name";
     private static final String IMG_URL = "img_url";
     private static final int DATABASE_VERSION=1;
 
-    public DBhandler(Context context) {
+    public ChatDBHelper(Context context) {
         super(context, DB_NAME, null, DATABASE_VERSION);
     }
 
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_CONTACTS + "("
+        String CREATE_CHAT_TABLE = "CREATE TABLE " + TABLE_CHAT + "("
                 + KEY_ID + " TEXT PRIMARY KEY," + NAME + " TEXT,"
                 + EMAIL + " TEXT," +IMG_URL+" TEXT"+ ")";
-        db.execSQL(CREATE_CONTACTS_TABLE);
+        db.execSQL(CREATE_CHAT_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHAT);
 
         onCreate(db);
     }
 
-    public void addContact(Contact contact) {
+    public void addContact(UserModel userModel) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_ID,contact.getID());
-        values.put(NAME, contact.getName()); // Contact Name
-        values.put(EMAIL, contact.getEmail()); // Contact Phone Number
-        values.put(IMG_URL,contact.getImg_url());
+        values.put(KEY_ID,userModel.getId());
+        values.put(NAME, userModel.getName()); // Contact Name
+        values.put(EMAIL, userModel.getEmail()); // Contact Phone Number
+        values.put(IMG_URL,userModel.getImg_url());
         // Inserting Row
-        db.insert(TABLE_CONTACTS, null, values);
+        db.insert(TABLE_CHAT, null, values);
         db.close(); // Closing database connection
     }
-
-
-
-   public Contact getContact(String email) {
+/*
+    public Contact getContact(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_ID,
-                        NAME, EMAIL, IMG_URL }, EMAIL + "=?",
+        Cursor cursor = db.query(TABLE_CHAT, new String[] {
+                        NAME, EMAIL }, EMAIL + "=?",
                 new String[] { email }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
@@ -70,12 +69,12 @@ public class DBhandler extends SQLiteOpenHelper {
                 cursor.getString(1), cursor.getString(2),cursor.getString(3));
         // return contact
         return contact;
-    }
+    }*/
 
-    public List<Contact> getAllContacts() {
-        List<Contact> contactList = new ArrayList<Contact>();
+    public List<UserModel> getAllChats() {
+        List<UserModel> chatList = new ArrayList<UserModel>();
         // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_CONTACTS;
+        String selectQuery = "SELECT  * FROM " + TABLE_CHAT;
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -83,44 +82,44 @@ public class DBhandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                Contact contact = new Contact();
-                contact.setID((cursor.getString(0)));
-                contact.setName(cursor.getString(1));
-                contact.setEmail(cursor.getString(2));
-                contact.setImg_url(cursor.getString(3));
+                UserModel chat = new UserModel();
+                chat.setId(cursor.getString(0));
+                chat.setName(cursor.getString(1));
+                chat.setEmail(cursor.getString(2));
+                chat.setImg_url(cursor.getString(3));
                 // Adding contact to list
-                contactList.add(contact);
+                chatList.add(chat);
             } while (cursor.moveToNext());
         }
 
         // return contact list
-        return contactList;
+        return chatList;
     }
 
-    public int updateContact(Contact contact) {
+    public int updateChat(UserModel userModel) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(NAME, contact.getName());
-        values.put(EMAIL, contact.getEmail());
+        values.put(NAME, userModel.getName());
+        values.put(EMAIL, userModel.getEmail());
 
 
         // updating row
-        return db.update(TABLE_CONTACTS, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(contact.getID()) });
+        return db.update(TABLE_CHAT, values, null,
+                null);
     }
 
     // Deleting single contact
-    public void deleteContact(Contact contact) {
+    public void deleteChat(UserModel userModel) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_CONTACTS, KEY_ID + " = ?",
-                new String[]{String.valueOf(contact.getID())});
+        db.delete(TABLE_CHAT, KEY_ID + " = ?",
+                new String[]{(userModel.getId())});
         db.close();
     }
 
     public void deleteAll(){
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("delete from "+ TABLE_CONTACTS);
+        db.execSQL("delete from "+ TABLE_CHAT);
         db.close();
     }
 

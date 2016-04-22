@@ -9,11 +9,16 @@ import java.util.List;
  * Created by Harshil on 18/04/2016.
  */
 public class UserModel implements Parcelable {
+    private String id;
     private String name;
     private String email;
+    private String img_url;
     private int pending_msg;
     private List<ChatMessage> chatMessagesList;
 
+    public UserModel(){
+
+    }
 
     public UserModel(Parcel in) {
         name = in.readString();
@@ -22,10 +27,35 @@ public class UserModel implements Parcelable {
         in.readTypedList(chatMessagesList, ChatMessage.CREATOR);
     }
 
-    public UserModel(String name, String email, int pending_msg) {
+    public UserModel(String id,String name, String email,String img_url ,int pending_msg) {
+        this.id=id;
         this.name = name;
         this.email = email;
         this.pending_msg = pending_msg;
+        this.img_url = img_url;
+    }
+/*
+    public UserModel(String id,String name, String email, int pending_msg) {
+        this.id=id;
+        this.name = name;
+        this.email = email;
+        this.pending_msg = pending_msg;
+    }*/
+
+    public String getImg_url() {
+        return img_url;
+    }
+
+    public void setImg_url(String img_url) {
+        this.img_url = img_url;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

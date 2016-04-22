@@ -11,7 +11,7 @@
 
 
     <startup.com.chatmate.CircularImageView
-        android:id="@+id/listimageview"
+        android:id="@+id/iv_chat_profile"
         android:layout_width="61dp"
         android:layout_height="61dp"
         android:src="@drawable/ic_account"
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:layout_marginLeft="7dp"
-            android:layout_marginTop="5dp"
+
             android:text="Medium Text"
             android:textSize="21.5sp"
             android:textStyle="bold"

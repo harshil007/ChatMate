@@ -38,8 +38,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.cert.CollectionCertStoreParameters;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListener{
@@ -59,6 +61,7 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
     int flag = 0;
     Toolbar toolbar;
     View vw;
+    ChatDBHelper db;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -77,7 +80,7 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
         });
 
         mModels = new ArrayList<>();
-
+        db = new ChatDBHelper(getActivity());
         /*
         for (String name : Chat) {
             mModels.add(new UserModel(name,"",));
@@ -114,9 +117,17 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
         adapter.animateTo(mModels);
     }
 
+    public void fetch_chats(){
+        mModels = db.getAllChats();
+        Collections.reverse(mModels);
+        adapter.animateTo(mModels);
+
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        fetch_chats();
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         title = (TextView) getActivity().findViewById(R.id.tv_title);
         et_search = (EditText) getActivity().findViewById(R.id.et_search);
@@ -192,10 +203,18 @@ public class TabFragment2 extends Fragment implements RecycleAdapter.ClickListen
 
     @Override
     public void itemClicked(View view, int position) {
-        TextView tv = (TextView)view.findViewById(R.id.tv_name);
-        String name =tv.getText().toString();
+        UserModel u = mModels.get(position);
+        String id = u.getId();
+        String img_url = u.getImg_url();
+        String name = u.getName();
+        String email = u.getEmail();
         Intent i = new Intent(getActivity(), ChatActivity.class);
+        i.putExtra("id",id);
         i.putExtra("name", name);
+        i.putExtra("email",email);
+        i.putExtra("img_url",img_url);
+        UserModel user = new UserModel(id,name,email,img_url,0);
+        ((MainActivity)getActivity()).update_chat_list(user);
         startActivity(i);
     }
 }

@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.gcm.GcmListenerService;
 
+import java.util.Calendar;
 import java.util.Random;
 
 /**
@@ -24,11 +25,13 @@ public class ChatService extends GcmListenerService {
     private NotificationManager mNotificationManager;
     NotificationCompat.Builder builder;
     String Sender;
-
+    DBhandler db;
+    MessageDBHelper db1;
 
     @Override
     public void onMessageReceived(String from, Bundle data) {
         super.onMessageReceived(from, data);
+        db = new DBhandler(this);
 
 
         //Here is called even app is not running.
@@ -52,12 +55,33 @@ public class ChatService extends GcmListenerService {
         mNotificationManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
 
+        Calendar calendar = Calendar.getInstance();
+        int Hr24=calendar.get(Calendar.HOUR_OF_DAY);
+        int Min=calendar.get(Calendar.MINUTE);
+        String timestamp = Hr24+":"+Min;
 
+        Contact contact = db.getContact(Sender);
+        String name = contact.getName();
+        String email = contact.getEmail();
+        String id = contact.getID();
+        String img_url = contact.getImg_url();
 
-        Intent intent = new Intent(this, ChatMessage.class)
+        //db1 = new MessageDBHelper(this,id);
+
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setMessageText(msg);
+        chatMessage.setMessageTime(timestamp);
+        chatMessage.setUserType(UserType.OTHER);
+        //db1.addMessage(chatMessage);
+
+        Intent intent = new Intent(this, ChatActivity.class)
                 //.addFlags(PendingIntent.FLAG_UPDATE_CURRENT)
                 .putExtra("data", msg)
-                .putExtra("name",Sender)
+                .putExtra("name",name)
+                .putExtra("id",id)
+                .putExtra("img_url",img_url)
+                .putExtra("email",Sender)
+                .putExtra("time",timestamp)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
                         Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
@@ -68,12 +92,13 @@ public class ChatService extends GcmListenerService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(pushmsg);
 
 
+
+
         PendingIntent contentIntent = PendingIntent.getActivity(this, new Random().nextInt(),
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
-                        // .setSmallIcon(R.drawable.ic_stat_gcm)
                         .setContentTitle(""+Sender)
                         .setSmallIcon(R.drawable.app_icon)
                         .setAutoCancel(true)

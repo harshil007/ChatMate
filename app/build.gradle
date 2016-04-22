@@ -23,6 +23,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+    compile files('libs/commons-net-3.3.jar')
     compile 'com.squareup.wire:wire-runtime:2.1.1'
     compile 'com.github.nkzawa:socket.io-client:0.3.0'
     compile 'com.android.support:appcompat-v7:23.1.1'

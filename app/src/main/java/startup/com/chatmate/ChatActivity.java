@@ -18,6 +18,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,6 +37,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,7 +68,7 @@ public class ChatActivity extends AppCompatActivity{
     SharedPreferences pref;
 
     String today;
-    String name,email;
+    String name,email,id,img_url;
     Calendar calendar;
 
     String URL = "http://chatmate.comlu.com/send_msg.php";
@@ -74,6 +76,11 @@ public class ChatActivity extends AppCompatActivity{
     private Socket mSocket;
     private RequestQueue mQueue;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
+
+    MessageDBHelper db;
+
+    SharedPreferences dpref;
+    SharedPreferences.Editor editor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,21 +100,55 @@ public class ChatActivity extends AppCompatActivity{
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        id = getIntent().getExtras().getString("id");
+        name = getIntent().getExtras().getString("name");
+        email = getIntent().getExtras().getString("email");
+        img_url = getIntent().getExtras().getString("img_url");
+
+        setup();
+
+    }
+
+    public void setup(){
         lv = (RecyclerView) findViewById(R.id.rc_chat);
 
 
-
-        name = getIntent().getExtras().getString("name");
-        email = getIntent().getExtras().getString("email");
         TextView tv_name = (TextView) findViewById(R.id.tv_name);
+        ImageView iv_image = (ImageView) findViewById(R.id.iv_image);
         tv_name.setText(name);
+        Picasso.with(this)
+                .load(img_url)
+                .into(iv_image);
+
+        String tb_name="u_"+id;
+        Log.i("TB",tb_name);
+
+        dpref = getSharedPreferences(tb_name, 0);
+        dpref.getBoolean("table_created",false);
+
+        db = new MessageDBHelper(this,tb_name);
+
+
 
         et_msg = (EditText) findViewById(R.id.et_msg);
 
         mQueue = CustomVolleyRequestQueue.getInstance(this.getApplicationContext())
                 .getRequestQueue();
 
-        chat_array = new ArrayList<>();
+
+        if(dpref.getBoolean("table_created",false)){
+            chat_array = db.fetch_messages();
+        }
+        else{
+            db.create_table(tb_name);
+            editor = dpref.edit();
+            editor.putBoolean("table_created",true);
+            editor.apply();
+        }
+
+        if(chat_array==null){
+            chat_array = new ArrayList<>();
+        }
 
         adapter=new ChatRecyclerAdapter(this,chat_array,false);
         lv.setAdapter(adapter);
@@ -164,13 +205,15 @@ public class ChatActivity extends AppCompatActivity{
                     msg.setMessageText(txt);
                     msg.setUserType(UserType.SELF);
                     msg.setMessageTime(timestamp);
+                    msg.setMessageStatus(Status.SENT);
                     chat_array.add(msg);
                     adapter.animateTo(chat_array);
                     lv.scrollToPosition(chat_array.size() - 1);
                     et_msg.setText("");
                     enter.setImageDrawable(getResources().getDrawable(R.drawable.ic_chat_send));
                     chat_active=0;
-                    volley_send(txt);
+                    volley_send(msg);
+
                 }
             }
         });
@@ -193,21 +236,18 @@ public class ChatActivity extends AppCompatActivity{
                     chat_array.add(chatMessage);
                     adapter.animateTo(chat_array);
                     lv.scrollToPosition(chat_array.size() - 1);
+                    db.addMessage(chatMessage);
                 }
-
-                //mAdapter.add(chatMessage);
-                //scrollMyListViewToBottom();
-                //tv1.setText(message);
 
             }
         };
-
     }
 
-    public void volley_send(String message){
+    public void volley_send(final ChatMessage message){
+        String msg = message.getMessageText();
 
         String sender = pref.getString("Email","nope");
-        String sendMsg = sender+" "+message;
+        String sendMsg = sender+" "+msg;
         JSONObject son = new JSONObject();
         try {
             son.put("email",email);
@@ -225,7 +265,10 @@ public class ChatActivity extends AppCompatActivity{
                     //String message = response.getString("message");
                     //Toast.makeText(ChatActivity.this,message,Toast.LENGTH_SHORT).show();
                     if(success==1){
-
+                        work_done(message);
+                    }
+                    else{
+                        volley_send(message);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -244,6 +287,19 @@ public class ChatActivity extends AppCompatActivity{
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         mQueue.add(jreq);
+
+    }
+
+    private void work_done(ChatMessage msg) {
+        chat_array.remove(msg);
+        adapter.animateTo(chat_array);
+        msg.setMessageStatus(Status.DELIVERED);
+        chat_array.add(msg);
+        adapter.animateTo(chat_array);
+        lv.scrollToPosition(0);
+        lv.scrollToPosition(chat_array.size() - 1);
+        db.addMessage(msg);
+
 
     }
 
@@ -297,13 +353,49 @@ public class ChatActivity extends AppCompatActivity{
                 lv.scrollToPosition(chat_array.size() - 1);
                 return true;
 
+            case R.id.menu_clear_chat:
+                if(db.TABLE_CREATED==1 || dpref.getBoolean("table_created",false)){
+                    db.removeAll();
+                    chat_array.clear();
+                    adapter.animateTo(chat_array);
+                    lv.scrollToPosition(0);
+                }
+
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            if (extras.containsKey("data")) {
+                //setContentView(R.layout.viewmain);
+                // extract the extra-data in the Notification
+                String msg = extras.getString("data");
+                id = getIntent().getExtras().getString("id");
+                name = getIntent().getExtras().getString("name");
+                email = getIntent().getExtras().getString("email");
+                img_url = getIntent().getExtras().getString("img_url");
+                setup();
+                String timestamp = getIntent().getExtras().getString("time");
+                Log.i("newIntent", msg);
+                ChatMessage chatMessage = new ChatMessage();
+                chatMessage.setMessageText(msg);
+                chatMessage.setMessageTime(timestamp);
+                chatMessage.setUserType(UserType.OTHER);
+                db.addMessage(chatMessage);
+                chat_array.add(chatMessage);
+                adapter.animateTo(chat_array);
+                lv.scrollToPosition(chat_array.size() - 1);
 
 
+                //tv1.setText(msg);
+            }
+        }
+    }
 
     /*
     Emitter.Listener msgReceived = new Emitter.Listener() {
