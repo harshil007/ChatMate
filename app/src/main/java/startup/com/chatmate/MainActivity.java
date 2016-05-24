@@ -51,6 +51,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -200,9 +202,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void uploadImage() {
-        InputStream is = getInputStreamFromURL(img_url);
+
         String name="u_"+id+".png";
-        new FTP().execute(name,is);
+        new FTP().execute(img_url,name);
         image_url = "http://chatmate.comlu.com/Images/profile_pics/"+name;
         editor = pref.edit();
         editor.putString("Pic_url",image_url);
@@ -283,32 +285,37 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public InputStream getInputStreamFromURL(String src) {
-        try {
-            java.net.URL url = new java.net.URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url
-                    .openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            //Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return input;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+
 
     class FTP extends AsyncTask<Object,Void,Void> {
 
 
         @Override
         protected Void doInBackground(Object... params) {
-            String name = (String) params[0];
-            InputStream inputstream = (InputStream) params[1];
+            String src = (String) params[0];
+            InputStream input=null;
+            java.net.URL url = null;
+            //InputStream input = (InputStream) params[1];
+            try {
+                url = new java.net.URL(src);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) url
+                        .openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                input = connection.getInputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String name = (String) params[1];
             FTPClient ftp = new FTPClient();
 
-            if(inputstream==null){
+            if(input==null){
                 return null;
             }
 
@@ -329,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
                 ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
                 ftp.enterLocalPassiveMode();
                 ftp.changeWorkingDirectory("/public_html/Images/profile_pics");
-                ftp.storeFile(name,inputstream);
+                ftp.storeFile(name,input);
                 ftp.logout();
                 ftp.disconnect();
 

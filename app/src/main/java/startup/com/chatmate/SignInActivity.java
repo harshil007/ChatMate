@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.URLUtil;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -100,6 +101,10 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             String photourl = String.valueOf(acct.getPhotoUrl());
 
             Log.i("G+","ID: "+id+"\nName: "+name+"\nEmail: "+email+"\nurl: "+photourl);
+
+            if(!URLUtil.isValidUrl(photourl)){
+                photourl="R.drawable.ic_account";
+            }
 
             editor.putString("ID",id);
             editor.putString("Name",name);
